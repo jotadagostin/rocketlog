@@ -2,7 +2,9 @@ import { AppError } from "@/utils/AppError";
 import { Request, Response } from "express";
 import { prisma } from "@/database/prisma";
 import { compare } from "bcrypt";
+import { sign } from "jsonwebtoken";
 import { z } from "zod";
+import { authConfig } from "@/configs/auth";
 
 class SessionsController {
   async create(request: Request, response: Response) {
@@ -26,7 +28,17 @@ class SessionsController {
     if (!passworMatched) {
       throw new AppError("Invalid email or password", 401);
     }
-    return response.json({ message: "ok" });
+
+    const { secret, expiresIn } = authConfig.jwt;
+
+    const token = sign({ role: user.role ?? "customer" }, secret, {
+      subject: user.id,
+      expiresIn,
+    });
+
+    const { password: hashedPassword, ...userWithouthPassword } = user;
+
+    return response.json({ token, user: userWithouthPassword });
   }
 }
 
