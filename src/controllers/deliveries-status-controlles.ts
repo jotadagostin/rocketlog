@@ -23,6 +23,8 @@ class DeliveriesStatusController {
         id,
       },
     });
+
+    return response.json();
   }
 }
 
